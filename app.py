@@ -3,9 +3,28 @@ import openai
 import os
 import time
 import pandas as pd
+import gspread
+from gspread_dataframe import set_with_dataframe
+import json
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
 # GPT API 키 설정
 openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+# 구글 시트 저장 함수 정의
+def save_to_google_sheet(df):
+    credentials = json.loads(st.secrets["GOOGLE_SHEET_CREDENTIALS"])
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
+    client = gspread.authorize(creds)
+
+    sheet = client.open_by_key(st.secrets["GOOGLE_SHEET_KEY"])
+    worksheet = sheet.sheet1  # 첫 번째 시트 사용
+
+    existing = pd.DataFrame(worksheet.get_all_records())
+    updated = pd.concat([existing, df], ignore_index=True)
+    set_with_dataframe(worksheet, updated)
 
 # 문제 리스트 설정 (난이도별 3문제씩)
 problems = [
@@ -92,6 +111,15 @@ if st.session_state.ended:
     st.markdown(f"### 🔚 최종 점수: {st.session_state.total_score}점")
     result_df = pd.DataFrame(st.session_state.result_log)
     st.download_button("📥 전체 결과 CSV 다운로드", result_df.to_csv(index=False), file_name="final_results.csv")
+
+    # ✅ 구글 시트에 저장
+    score_df = pd.DataFrame([{
+        "이름": name,
+        "총점": st.session_state.total_score,
+        "날짜": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }])
+    save_to_google_sheet(score_df)
+
     st.stop()
 
 # 사용자 질문 입력

@@ -1,3 +1,6 @@
 streamlit
-openai==0.28
+openai
 pandas
+gspread
+gspread-dataframe
+oauth2client
