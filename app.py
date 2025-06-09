@@ -123,7 +123,7 @@ if st.button("질문 보내기") and question:
         st.session_state.problem_idx += 1
         st.session_state.score = 100
         st.session_state.history.clear()
-        st.experimental_rerun()
+        st.rerun()
 
 # 이전 질문 출력
 if st.session_state.history:
