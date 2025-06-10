@@ -8,6 +8,7 @@ from gspread_dataframe import set_with_dataframe
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import re
 
 # GPT API 키 설정
 openai.api_key = st.secrets["OPENAI_API_KEY"]
@@ -79,10 +80,13 @@ def ask_gpt(question, answer, difficulty):
     prompt = f"""
     너는 단어 추리 게임의 마스터야. 숨겨진 단어는 "{answer}"이야.
     사용자가 "{question}"이라고 물었을 때 난이도 "{difficulty}" 기준으로 힌트를 줘.
-    - 난이도 '쉬움'이면 최대한 구체적인 힌트를 줘.
-    - 난이도 '중간'이면 중간 수준의 힌트를 줘.
-    - 난이도 '어려움'이면 모호하게 대답해.
-    또한 사용자의 질문에 정답 단어가 포함되어 있다면 바로 정답 처리하고 종료 메시지를 출력해.
+
+    - 쉬움: 약간 유추 가능한 힌트를 한두 문장으로 제공 (정답 직접 노출은 절대 금지)
+    - 중간: 추상적이거나 비유적인 설명으로 유도 (직접적으로 연상되면 안 됨)
+    - 어려움: 최대한 모호하고 보수적으로 대답해. 구체적인 설명은 피해
+
+    ⚠️ 중요: 정답 단어를 질문에 포함했거나 GPT 응답에 정답 단어가 직접적으로 나타나면 안 된다. 절대 노출하지 마라.
+    단어를 맞췄다면 "정답입니다!"라는 메시지를 제공하고 종료하되, 정답 단어는 직접 출력하지 마.
     """
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
@@ -128,14 +132,15 @@ question = st.text_input(f"문제 {st.session_state.problem_idx+1}/9 - 난이도
 if st.button("질문 보내기") and question:
     with st.spinner("GPT가 생각 중..."):
         penalty = deduct_score(question, answer)
-        st.session_state.score -= penalty
+        st.session_state.score = max(0, st.session_state.score - penalty)
         reply = ask_gpt(question, answer, difficulty)
         time.sleep(0.5)
 
     st.session_state.history.append((question, reply))
     st.write("**GPT:**", reply)
 
-    if answer.lower() in question.lower():
+    # 정답 포함 여부 확인 (단어 단위)
+    if re.search(rf"\b{re.escape(answer.lower())}\b", question.lower()):
         st.success("정답입니다! 🎉 다음 문제로 이동합니다.")
 
         # 점수 기록
