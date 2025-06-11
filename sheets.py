@@ -37,17 +37,18 @@ def save_individual_score(name, problem_num, difficulty, answer, score, total_sc
 
     set_with_dataframe(worksheet, existing)
 
-# # ✅ 최종 점수 저장은 동일하게 유지 (중복 저장될 순 있음)
-# def save_final_score(name, total_score):
-#     worksheet = _get_worksheet()
-#     row = pd.DataFrame([{
-#         "이름": name.strip(),
-#         "총점": total_score,
-#         "날짜": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#     }])
-#     existing = pd.DataFrame(worksheet.get_all_records())
-#     updated = pd.concat([existing, row], ignore_index=True)
-#     set_with_dataframe(worksheet, updated)
+# ✅ 최종 점수 저장은 동일하게 유지 (중복 저장될 순 있음)
+def save_final_score(name, total_score):
+    pass
+    # worksheet = _get_worksheet()
+    # row = pd.DataFrame([{
+    #     "이름": name.strip(),
+    #     "총점": total_score,
+    #     "날짜": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # }])
+    # existing = pd.DataFrame(worksheet.get_all_records())
+    # updated = pd.concat([existing, row], ignore_index=True)
+    # set_with_dataframe(worksheet, updated)
 
 # ✅ 리더보드 조회
 def get_leaderboard():
