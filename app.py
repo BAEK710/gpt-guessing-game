@@ -100,6 +100,9 @@ if st.button("질문 보내기") and question:
     # ✅ 정답 포함 여부 확인
     if re.search(rf"\b{re.escape(answer.lower())}\b", question.lower()) or re.search(rf"\b{re.escape(answer.lower())}\b", reply.lower()):
         st.success("정답입니다! 🎉 다음 문제로 이동합니다.")
+        
+        # ✅ 1초 대기 후 다음 문제로 넘어감
+        time.sleep(1)
 
         st.session_state.result_log.append({
             "이름": name,
@@ -125,6 +128,7 @@ if st.button("질문 보내기") and question:
         st.session_state.history.clear()
         st.session_state.hint_shown = False
         st.rerun()
+
 
 # 힌트 조건: 5회 질문 시 초성 힌트 제공
 if len(st.session_state.history) >= 5 and not st.session_state.hint_shown:
