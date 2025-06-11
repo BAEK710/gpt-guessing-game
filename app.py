@@ -98,7 +98,7 @@ if st.button("질문 보내기") and question:
     st.write("**GPT:**", reply)
 
     # ✅ 정답 포함 여부 확인
-    if re.search(rf"\b{re.escape(answer.lower())}\b", question.lower()) or re.search(rf"\b{re.escape(answer.lower())}\b", reply.lower()):
+    if answer.lower() in question.lower() or answer.lower() in reply.lower():
         st.success("정답입니다! 🎉 다음 문제로 이동합니다.")
         
         # ✅ 1초 대기 후 다음 문제로 넘어감
