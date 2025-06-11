@@ -1,4 +1,3 @@
-# sheets.py
 import gspread
 import pandas as pd
 import json
@@ -18,19 +17,7 @@ def _get_worksheet():
 
 
 def save_individual_score(name, problem_num, difficulty, answer, score, total_score):
-    worksheet = _get_worksheet()
-    row = pd.DataFrame([{
-        "이름": name,
-        "문제 번호": problem_num,
-        "난이도": difficulty,
-        "정답": answer,
-        "점수": score,
-        "총점": total_score,
-        "날짜": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }])
-    existing = pd.DataFrame(worksheet.get_all_records())
-    updated = pd.concat([existing, row], ignore_index=True)
-    set_with_dataframe(worksheet, updated)
+    pass  # 점수 개별 저장은 사용하지 않음
 
 
 def save_final_score(name, total_score):
@@ -43,3 +30,12 @@ def save_final_score(name, total_score):
     existing = pd.DataFrame(worksheet.get_all_records())
     updated = pd.concat([existing, row], ignore_index=True)
     set_with_dataframe(worksheet, updated)
+
+
+def get_leaderboard():
+    worksheet = _get_worksheet()
+    df = pd.DataFrame(worksheet.get_all_records())
+    if "이름" in df.columns and "총점" in df.columns:
+        leaderboard = df.groupby("이름")["총점"].max().reset_index().sort_values(by="총점", ascending=False)
+        return leaderboard
+    return pd.DataFrame(columns=["이름", "총점"])

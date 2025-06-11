@@ -101,12 +101,13 @@ if st.button("질문 보내기") and question:
 
         st.session_state.last_score_info = {
             "name": name,
-            "problem_idx": st.session_state.problem_idx + 1,
+            "problem_num": st.session_state.problem_idx + 1,  # ✅ 수정됨
             "difficulty": difficulty,
             "answer": answer,
             "score": st.session_state.score,
             "total_score": st.session_state.total_score + st.session_state.score
         }
+
         st.session_state.ready_to_advance = True
 
         st.session_state.total_score += st.session_state.score
