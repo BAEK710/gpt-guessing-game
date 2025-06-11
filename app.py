@@ -22,6 +22,8 @@ if "problem_idx" not in st.session_state:
     st.session_state.ended = False
     st.session_state.result_log = []
     st.session_state.hint_shown = False
+    st.session_state.ready_to_advance = False
+    st.session_state.last_score_info = None
 
 # 제목
 st.title("🔍 GPT 단어 추리 게임")
@@ -36,6 +38,12 @@ if st.session_state.problem_idx < len(problems):
     difficulty = current["difficulty"]
 else:
     st.session_state.ended = True
+
+# ✅ 저장은 rerun 이후에 반영되도록 분리
+if st.session_state.ready_to_advance and st.session_state.last_score_info:
+    save_individual_score(**st.session_state.last_score_info)
+    st.session_state.ready_to_advance = False
+    st.session_state.last_score_info = None
 
 # 게임 종료 처리
 if st.session_state.ended:
@@ -78,13 +86,11 @@ if st.button("질문 보내기") and question:
     st.session_state.history.append((question, reply))
     st.write("**GPT:**", reply)
 
-    # 정답 포함 여부 확인 (단어 단위)
-    if re.search(rf"\\b{re.escape(answer.lower())}\\b", question.lower()):
+    # ✅ 정답 포함 여부 확인 (질문 or GPT 응답 모두 포함)
+    if re.search(rf"\b{re.escape(answer.lower())}\b", question.lower()) or re.search(rf"\b{re.escape(answer.lower())}\b", reply.lower()):
         st.success("정답입니다! 🎉 다음 문제로 이동합니다.")
 
         # 점수 기록
-        save_individual_score(name, st.session_state.problem_idx + 1, difficulty, answer, st.session_state.score, st.session_state.total_score + st.session_state.score)
-
         st.session_state.result_log.append({
             "이름": name,
             "문제 번호": st.session_state.problem_idx + 1,
@@ -92,6 +98,16 @@ if st.button("질문 보내기") and question:
             "정답": answer,
             "점수": st.session_state.score
         })
+
+        st.session_state.last_score_info = {
+            "name": name,
+            "problem_idx": st.session_state.problem_idx + 1,
+            "difficulty": difficulty,
+            "answer": answer,
+            "score": st.session_state.score,
+            "total_score": st.session_state.total_score + st.session_state.score
+        }
+        st.session_state.ready_to_advance = True
 
         st.session_state.total_score += st.session_state.score
         st.session_state.problem_idx += 1
