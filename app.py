@@ -11,6 +11,19 @@ from sheets import save_individual_score, save_final_score
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
+def get_chosung(text):
+    CHOSUNG_LIST = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ",
+                    "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+    result = []
+    for char in text:
+        if '가' <= char <= '힣':
+            code = ord(char) - ord('가')
+            cho = code // 588
+            result.append(CHOSUNG_LIST[cho])
+        else:
+            result.append(char)  # 영어/숫자는 그대로
+    return result
+
 # 세션 상태 초기화
 if "problem_idx" not in st.session_state:
     st.session_state.problem_idx = 0
@@ -132,7 +145,7 @@ if st.button("질문 보내기") and question:
 
 # 힌트 조건: 5회 질문 시 초성 힌트 제공
 if len(st.session_state.history) >= 5 and not st.session_state.hint_shown:
-    chosung = ''.join([c[0] for c in answer if '가' <= c <= '힣'])
+    chosung = get_chosung(answer)
     st.info(f"💡 초성 힌트: {' '.join(chosung)}")
     st.session_state.hint_shown = True
 
